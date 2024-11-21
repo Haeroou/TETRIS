@@ -13,8 +13,15 @@
 #define JOYSTICK_PIN     (1)
 
 int latchpin = 6;
-int clockpin = 4;
-int datapin = 2;
+int clockpin = 5;
+int datapin = 4;
+int trig = 3;//초음파
+int echo = 2;
+int touch1 = 7;//회전용 터치
+int touch2 = 8;//내리는 터치
+
+int touch_state1 = 0;
+int touch_state2 = 0;
 
 // 1 color drawings of each piece in each rotation.
 // Each piece is max 4 wide, 4 tall, and 4 rotations.
@@ -261,7 +268,7 @@ void draw_grid() {
     shiftOut(datapin, clockpin, LSBFIRST, ~col1[i]);
     shiftOut(datapin, clockpin, LSBFIRST, ~col2[i]);
     digitalWrite(latchpin, HIGH);
-    delay(1);
+    delayMicroseconds(10);
   }
 }
 
@@ -367,19 +374,29 @@ void remove_full_rows() {
   }  
 }
 
+int  super_sonic(){
+long duration, distance;
+  digitalWrite(trig, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trig, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trig, LOW);
+  duration = pulseIn (echo, HIGH);
+  distance = duration * 17 / 1000; 
+  return distance;
+}
 
 void try_to_move_piece_sideways() {
   // what does the joystick angle say
-  int dx = map(analogRead(0),0,1023,512,-512);
+  int dx = super_sonic();
   
   Serial.println(dx);
 
   int new_px = 0;
-  // is the joystick really being pushed?
-  if(dx> JOYSTICK_DEAD_ZONE) {
+  if(dx > 40) {
     new_px=1;
   }
-  if(dx<-JOYSTICK_DEAD_ZONE) {
+  if(dx < 20) {
     new_px=-1;
   }
 
@@ -402,8 +419,8 @@ void try_to_rotate_piece() {
   old_button=new_button;
   
   // up on joystick to rotate
-  int dy = map(analogRead(1),0,1023,512,-512);
-  if(dy<-JOYSTICK_DEAD_ZONE) i_want_to_turn=1;
+  touch_state1 = digitalRead(touch1);
+  if(touch_state1 == HIGH) i_want_to_turn=1;
   
   if(i_want_to_turn==1 && i_want_to_turn != old_i_want_to_turn) {
     // figure out what it will look like at that new angle
@@ -500,8 +517,8 @@ void try_to_drop_piece() {
 
 
 void try_to_drop_faster() {
-  int y = map(analogRead(1),0,1023,512,-512);
-  if(y>JOYSTICK_DEAD_ZONE) {
+  touch_state2 = digitalRead(touch2);
+  if(touch_state2 == HIGH) {
     // player is holding joystick down, drop a little faster.
     try_to_drop_piece();
   }
@@ -544,7 +561,8 @@ void setup() {
  pinMode(latchpin, OUTPUT);
  pinMode(clockpin, OUTPUT);
  pinMode(datapin, OUTPUT);
-  
+  pinMode(trig, OUTPUT);
+  pinMode(echo, INPUT);
   Serial.begin(9600);
  
   // set up joystick button
