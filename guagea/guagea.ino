@@ -272,7 +272,8 @@ void draw_grid() {
     shiftOut(datapin, clockpin, LSBFIRST, ~col1[i]);
     shiftOut(datapin, clockpin, LSBFIRST, ~col2[i]);
     digitalWrite(latchpin, HIGH);
-    delayMicroseconds(10);
+    if(pattern_currentTime != 3) delayMicroseconds(10); // 기본
+    if(pattern_currentTime == 3) delayMicroseconds(1000); // 프레임 감소
   }
 }
 
@@ -397,12 +398,12 @@ void try_to_move_piece_sideways() {
   Serial.println(dx);
 
   int new_px = 0;
-  if(dx > 40) {
-    new_px=1;
-  }
-  if(dx < 20) {
-    new_px=-1;
-  }
+  // 기본
+  if(dx > 40 && pattern_num != 1) new_px=1;
+  if(dx < 20 && pattern_num != 1) new_px=-1;
+  // 초음파 반전
+  if(dx > 40 && pattern_num == 1) new_px=-1;
+  if(dx < 20 && pattern_num == 1) new_px=1;
 
   if(new_px!=old_px && piece_can_fit(piece_x+new_px,piece_y,piece_rotation)==1) {
     piece_x+=new_px;
@@ -424,7 +425,8 @@ void try_to_rotate_piece() {
   
   // up on joystick to rotate
   touch_state1 = digitalRead(touch1);
-  if(touch_state1 == HIGH) i_want_to_turn=1;
+  if(touch_state1 == HIGH && pattern_num != 2) i_want_to_turn=1;  // 기본
+  if(touch_state1 == LOW && pattern_num == 2) i_want_to_turn=1;   // 터치 반전
   
   if(i_want_to_turn==1 && i_want_to_turn != old_i_want_to_turn) {
     // figure out what it will look like at that new angle
@@ -556,15 +558,17 @@ int game_is_over() {
   
   return 0;  // not over yet...
 }
-
-// 패턴 랜덤 변환
+//--------------------------------------------------------------------------------
+// 패턴 랜덤 변환 함수
+// 0 == 기본  1 == 초음파 반전  2 == 터치센서 반전  3 == 프레임 감소
+//--------------------------------------------------------------------------------
 void setting_pattern_random() {
   unsigned long pattern_currentTime = millis();
 
   if (pattern_currentTime - pattern_lastTime >= pattern_interval) {
     pattern_lastTime = pattern_currentTime;
 
-    pattern_num = random(0, 5); // 패턴 갯수 설정
+    pattern_num = random(0, 4); // 패턴 갯수 설정
 
     Serial.println(pattern_num);
   }
