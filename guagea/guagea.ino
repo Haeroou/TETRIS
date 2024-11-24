@@ -15,10 +15,10 @@
 int latchpin = 6;
 int clockpin = 5;
 int datapin = 4;
-int trig = 3;//초음파
+int trig = 3;// 초음파
 int echo = 2;
-int touch1 = 7;//회전용 터치
-int touch2 = 8;//내리는 터치
+int touch1 = 7;// 회전용 터치
+int touch2 = 8;// 내리는 터치
 
 int touch_state1 = 0;
 int touch_state2 = 0;
@@ -237,6 +237,10 @@ long drop_delay=500;  // 500ms = 2 times a second
 // this is how arduino remembers where pieces are on the grid.
 char grid[8*16];
 
+// 패턴 관련 변수
+int pattern_num; // 패턴 종류 값
+unsigned long pattern_lastTime = 0; // 마지막으로 업데이트 된 시간
+const int pattern_interval = 10000; // 패턴 변환 주기(ms)
 
 //--------------------------------------------------------------------------------
 // METHODS
@@ -553,6 +557,18 @@ int game_is_over() {
   return 0;  // not over yet...
 }
 
+// 패턴 랜덤 변환
+void setting_pattern_random() {
+  unsigned long pattern_currentTime = millis();
+
+  if (pattern_currentTime - pattern_lastTime >= pattern_interval) {
+    pattern_lastTime = pattern_currentTime;
+
+    pattern_num = random(0, 5); // 패턴 갯수 설정
+
+    Serial.println(pattern_num);
+  }
+}
 
 // called once when arduino reboots
 void setup() {
@@ -602,4 +618,6 @@ void loop() {
   
   // when it isn't doing those two things, it's redrawing the grid.
   draw_grid();
+  // 패턴 설정
+  setting_pattern_random();
 }
