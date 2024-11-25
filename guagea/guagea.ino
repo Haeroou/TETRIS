@@ -272,8 +272,8 @@ void draw_grid() {
     shiftOut(datapin, clockpin, LSBFIRST, ~col1[i]);
     shiftOut(datapin, clockpin, LSBFIRST, ~col2[i]);
     digitalWrite(latchpin, HIGH);
-    if(pattern_currentTime != 3) delayMicroseconds(10); // 기본
-    if(pattern_currentTime == 3) delayMicroseconds(1000); // 프레임 감소
+    if(pattern_num != 3) delayMicroseconds(10); // 기본
+    if(pattern_num == 3) delayMicroseconds(1000); // 프레임 감소
   }
 }
 
@@ -424,10 +424,9 @@ void try_to_rotate_piece() {
   old_button=new_button;
   
   // up on joystick to rotate
-  touch_state1 = digitalRead(touch1);
-  if(touch_state1 == HIGH && pattern_num != 2) i_want_to_turn=1;  // 기본
-  if(touch_state1 == LOW && pattern_num == 2) i_want_to_turn=1;   // 터치 반전
-  
+  if(pattern_num != 2) touch_state1 = digitalRead(touch1);  // 기본
+  if(pattern_num == 2) touch_state1 = digitalRead(touch2);  // 반전
+  if(touch_state1 == HIGH) i_want_to_turn=1;
   if(i_want_to_turn==1 && i_want_to_turn != old_i_want_to_turn) {
     // figure out what it will look like at that new angle
     int new_pr = ( piece_rotation + 1 ) % 4;
@@ -523,7 +522,8 @@ void try_to_drop_piece() {
 
 
 void try_to_drop_faster() {
-  touch_state2 = digitalRead(touch2);
+  if(pattern_num != 2) touch_state2 = digitalRead(touch1);  // 기본
+  if(pattern_num == 2) touch_state2 = digitalRead(touch2);  // 반전
   if(touch_state2 == HIGH) {
     // player is holding joystick down, drop a little faster.
     try_to_drop_piece();
