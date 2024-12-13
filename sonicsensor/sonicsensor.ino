@@ -1,36 +1,53 @@
 #include <SoftwareSerial.h>
 SoftwareSerial s(3,2);  //3:RX 2:TX
 
-int trigPin = 13;
-int echoPin = 12;
+int rotateTrigPin = 13;
+int rotateEchoPin = 12;
+
+int downTrigPin = 11;
+int downEchoPin = 10;
+
 void setup() {
   Serial.begin(9600);
   s.begin(9600);
-  pinMode(echoPin, INPUT);
-  pinMode(trigPin, OUTPUT);
+  pinMode(rotateEchoPin, INPUT);
+  pinMode(rotateTrigPin, OUTPUT);
+  pinMode(downEchoPin, INPUT);
+  pinMode(downTrigPin, OUTPUT);
 }
 
 void loop() {
-  long duration, distance, temp_distance;
-  digitalWrite(trigPin, HIGH);
+  long rotateDuration, rotateDistance, rotateTempDistance;
+  long downDuration, downDistance, downTempDistance;
+
+  digitalWrite(rotateTrigPin, HIGH);
+
+  digitalWrite(downTrigPin, HIGH);
   delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
-  duration = pulseIn(echoPin, HIGH);
-  temp_distance = ((float)(340 * duration) / 10000) / 2;
+  digitalWrite(rotateTrigPin, LOW);
+  rotateDuration = pulseIn(rotateEchoPin, HIGH);
+  rotateTempDistance = ((float)(340 * rotateDuration) / 10000) / 2;
 
-  if (temp_distance <= 35) {
-    distance = temp_distance;
+  digitalWrite(downTrigPin, LOW);
+  downDuration = pulseIn(downEchoPin, HIGH);
+  downTempDistance = ((float)(340 * downDuration) / 10000) / 2;
+
+  if (rotateTempDistance <= 35) {
+    rotateDistance = rotateTempDistance;
   }
 
-  if (distance <= 10) {
+  if (downTempDistance <= 35) {
+    downDistance = downTempDistance;
+  }
+
+  if (rotateDistance <= 10) {
     s.write('0');
-  }
-  else if (distance <= 22) {
-    s.write('1');
-  }
-  else {
-    s.write('2');
+    Serial.println("0");
   }
 
+  if (downDistance <= 10) {
+    s.write('2');
+    Serial.println("2");
+  }
   delay(100);
 }
