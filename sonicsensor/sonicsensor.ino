@@ -1,5 +1,5 @@
 #include <SoftwareSerial.h>
-SoftwareSerial s(2,3);  //2:RX 3:TX
+SoftwareSerial s(3,2);  //3:RX 2:TX
 
 int trigPin = 13;
 int echoPin = 12;
