@@ -12,17 +12,20 @@
 
 #define JOYSTICK_PIN (1)
 
+#include <SoftwareSerial.h>
+SoftwareSerial s(2, 3);  // 2:RX 3:TX
+
 int latchpin = 6;
 int clockpin = 5;
 int datapin = 4;
-int trig = 3;  // 초음파
-int echo = 2;
+
 int touch1 = 7;  // 회전용 터치
 int touch2 = 8;  // 내리는 터치
 
 int touch_state1 = 0;
 int touch_state2 = 0;
 
+int sonic;
 // 1 color drawings of each piece in each rotation.
 // Each piece is max 4 wide, 4 tall, and 4 rotations.
 const char piece_I[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0 };
@@ -261,32 +264,26 @@ void remove_full_rows() {
 }
 
 int super_sonic() {
-  long duration, distance;
-  digitalWrite(trig, LOW);
-  delayMicroseconds(2);
-  digitalWrite(trig, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trig, LOW);
-  duration = pulseIn(echo, HIGH);
-  distance = duration * 17 / 1000;
-  if (distance > 200) { distance = 15; }
-  Serial.println(distance);
-  return distance;
 }
 
 void try_to_move_piece_sideways() {
-  // what does the joystick angle say
-  int dx = super_sonic();
-
-  Serial.println(dx);
 
   int new_px = 0;
-  // 기본
-  if (dx > 20 && pattern_num != 1) new_px = 1;
-  if (dx < 10 && pattern_num != 1) new_px = -1;
-  // 초음파 반전
-  if (dx > 40 && pattern_num == 1) new_px = -1;
-  if (dx < 20 && pattern_num == 1) new_px = 1;
+  if (pattern_num != 2) {
+    touch_state1 = digitalRead(touch1);
+    touch_state2 = digitalRead(touch2);  // 기본
+  }
+  if (pattern_num == 2) {
+    touch_state1 = digitalRead(touch2);
+    touch_state2 = digitalRead(touch1);  // 반전
+  }
+
+  if (touch_state1 == HIGH) {
+    new_px = 1;
+  }
+  if (touch_state2 == HIGH) {
+    new_px = -1;
+  }
 
   if (new_px != old_px && piece_can_fit(piece_x + new_px, piece_y, piece_rotation) == 1) {
     piece_x += new_px;
@@ -307,9 +304,7 @@ void try_to_rotate_piece() {
   old_button = new_button;
 
   // up on joystick to rotate
-  if (pattern_num != 2) touch_state1 = digitalRead(touch1);  // 기본
-  if (pattern_num == 2) touch_state1 = digitalRead(touch2);  // 반전
-  if (touch_state1 == HIGH) i_want_to_turn = 1;
+  if (sonic == 0) i_want_to_turn = 1;
   if (i_want_to_turn == 1 && i_want_to_turn != old_i_want_to_turn) {
     // figure out what it will look like at that new angle
     int new_pr = (piece_rotation + 1) % 4;
@@ -405,9 +400,7 @@ void try_to_drop_piece() {
 
 
 void try_to_drop_faster() {
-  if (pattern_num != 2) touch_state2 = digitalRead(touch2);  // 기본
-  if (pattern_num == 2) touch_state2 = digitalRead(touch1);  // 반전
-  if (touch_state2 == HIGH) {
+  if (sonic == 2) {
     // player is holding joystick down, drop a little faster.
     try_to_drop_piece();
   }
@@ -464,8 +457,6 @@ void setup() {
   pinMode(latchpin, OUTPUT);
   pinMode(clockpin, OUTPUT);
   pinMode(datapin, OUTPUT);
-  pinMode(trig, OUTPUT);
-  pinMode(echo, INPUT);
   Serial.begin(9600);
 
   // set up joystick button
@@ -507,4 +498,16 @@ void loop() {
   draw_grid();
   // 패턴 설정
   //setting_pattern_random();
+
+  if (s.available()) {
+    char data = s.read();
+    sonic = int(data - '0');
+    Serial.println(data);
+    if (pattern_num == 1 && sonic == 0) {
+      sonic = 2;
+    }
+    if (pattern_num == 1 && sonic == 2) {
+      sonic = 0;
+    }
+  }
 }
