@@ -182,6 +182,7 @@ void choose_new_piece() {
     }
     // rewind sequence counter
     sequence_i = 0;
+    score += 3;
   }
 
   // get the next piece in the sequence.
@@ -244,6 +245,7 @@ void delete_row(int y) {
   for (x = 0; x < GRID_W; ++x) {
     grid[x] = 0;
   }
+  score += 8;
 }
 
 
@@ -449,6 +451,7 @@ void setting_pattern_random() {
   }
 }
 
+
 // called once when arduino reboots
 void setup() {
   int i;
@@ -457,6 +460,7 @@ void setup() {
   pinMode(clockpin, OUTPUT);
   pinMode(datapin, OUTPUT);
   Serial.begin(9600);
+  s.begin(9600);
 
   // set up joystick button
   pinMode(JOYSTICK_PIN, INPUT);
@@ -476,6 +480,8 @@ void setup() {
   // start the game clock after everything else is ready.
   last_move = millis();
   last_drop = last_move;
+
+  score = 0;
 }
 
 
