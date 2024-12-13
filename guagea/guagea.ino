@@ -60,7 +60,7 @@ int row7[8] = {
 
 int col7[11] = { 0xFC, 0x60, 0xDA, 0xF2, 0x66, 0xB6, 0xBE, 0xE4, 0xFE, 0xF6, 0x00 };
 
-int score = 0;
+int score = 8888;
 int s_score[4];
 int b_score;
 int col1[8];
@@ -150,12 +150,11 @@ void draw_grid() {
   }
   for (int i = 0; i < 8; i++) {
     digitalWrite(latchpin, LOW);
-    shiftOut(datapin, clockpin, LSBFIRST, row7[i]);
-    shiftOut(datapin, clockpin, LSBFIRST, col7[s_score[i % 4]]);
     shiftOut(datapin, clockpin, LSBFIRST, row[i]);
     shiftOut(datapin, clockpin, LSBFIRST, ~col1[i]);
     shiftOut(datapin, clockpin, LSBFIRST, ~col2[i]);
     digitalWrite(latchpin, HIGH);
+    delay(1);
     if (pattern_num != 3) delayMicroseconds(1);     // 기본
     if (pattern_num == 3) delayMicroseconds(1000);  // 프레임 감소
   }
