@@ -15,9 +15,9 @@
 #include <SoftwareSerial.h>
 SoftwareSerial s(2, 3);  // 2:RX 3:TX
 
-int latchpin = 6;
-int clockpin = 5;
-int datapin = 4;
+int latchpin = 5;
+int clockpin = 4;
+int datapin = 6;
 
 int touch1 = 7;  // 회전용 터치
 int touch2 = 8;  // 내리는 터치
@@ -139,17 +139,20 @@ void draw_grid() {
     col2[i] = pcol;
     pcol = 0;
   }
-  b_score = score;
+  Serial.println(score);
+   b_score = score;
   for (int i = 0; i < 4; i++) {
     if (b_score == 0) {
       s_score[i] = 10;
     } else {
       s_score[i] = b_score % 10;
+      b_score /= 10;
     }
-    b_score / 10;
   }
   for (int i = 0; i < 8; i++) {
     digitalWrite(latchpin, LOW);
+    shiftOut(datapin, clockpin, LSBFIRST, row7[i]);
+    shiftOut(datapin, clockpin, LSBFIRST, col7[s_score[i % 4]]);
     shiftOut(datapin, clockpin, LSBFIRST, row[i]);
     shiftOut(datapin, clockpin, LSBFIRST, ~col1[i]);
     shiftOut(datapin, clockpin, LSBFIRST, ~col2[i]);
