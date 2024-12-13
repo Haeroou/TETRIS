@@ -48,19 +48,19 @@ int row[8] = {
 };
 
 int row7[8] = {
-  B10000001,
-  B01000010,
-  B00100100,
-  B00011000,
-  B00011000,
-  B00100100,
-  B01000010,
-  B10000001
+  B00010000,
+  B00100000,
+  B01000000,
+  B10000000,
+  B00010000,
+  B00100000,
+  B01000000,
+  B10000000
 };
 
 int col7[11] = { 0xFC, 0x60, 0xDA, 0xF2, 0x66, 0xB6, 0xBE, 0xE4, 0xFE, 0xF6, 0x00 };
 
-int score = 8888;
+int score = 3;
 int s_score[4];
 int b_score;
 int col1[8];
@@ -114,7 +114,7 @@ char grid[8 * 16];
 // 패턴 관련 변수
 int pattern_num = 0;                 // 패턴 종류 값
 unsigned long pattern_lastTime = 0;  // 마지막으로 업데이트 된 시간
-const int pattern_interval = 10000;  // 패턴 변환 주기(ms)
+const int pattern_interval = 8000;  // 패턴 변환 주기(ms)
 
 //--------------------------------------------------------------------------------
 // METHODS
@@ -139,7 +139,7 @@ void draw_grid() {
     col2[i] = pcol;
     pcol = 0;
   }
-  Serial.println(score);
+  
    b_score = score;
   for (int i = 0; i < 4; i++) {
     if (b_score == 0) {
@@ -151,7 +151,7 @@ void draw_grid() {
   }
   for (int i = 0; i < 8; i++) {
     digitalWrite(latchpin, LOW);
-    shiftOut(datapin, clockpin, LSBFIRST, row7[i]);
+    shiftOut(datapin, clockpin, LSBFIRST, ~row7[i]);
     shiftOut(datapin, clockpin, LSBFIRST, col7[s_score[i % 4]]);
     shiftOut(datapin, clockpin, LSBFIRST, row[i]);
     shiftOut(datapin, clockpin, LSBFIRST, ~col1[i]);
@@ -159,7 +159,7 @@ void draw_grid() {
     digitalWrite(latchpin, HIGH);
     delay(1);
     if (pattern_num != 3) delayMicroseconds(1);     // 기본
-    if (pattern_num == 3) delayMicroseconds(1000);  // 프레임 감소
+    if (pattern_num == 3) delayMicroseconds(10000);  // 프레임 감소
   }
 }
 
@@ -185,7 +185,6 @@ void choose_new_piece() {
     }
     // rewind sequence counter
     sequence_i = 0;
-    score += 3;
   }
 
   // get the next piece in the sequence.
@@ -378,6 +377,7 @@ void game_over() {
     if (digitalRead(1) == 0) {
       // restart!
       setup();
+      score = 0;
       return;
     }
   }
@@ -399,6 +399,7 @@ void try_to_drop_piece() {
     }
     // game isn't over, choose a new piece
     choose_new_piece();
+    score += 3;
   }
 }
 
@@ -450,7 +451,20 @@ void setting_pattern_random() {
 
     pattern_num = random(0, 4);  // 패턴 갯수 설정
 
-    Serial.println(pattern_num);
+    Serial.print("현재 패턴: ");
+    if (pattern_num == 0) {
+      Serial.print("기본");
+    }
+    else if (pattern_num == 1) {
+      Serial.print("초음파 반전");
+    }
+    else if (pattern_num == 2) {
+      Serial.print("터치센서 반전");
+    }
+    else if (pattern_num == 3) {
+      Serial.print("프레임 감소");
+    }
+    Serial.println("");
   }
 }
 
@@ -483,8 +497,6 @@ void setup() {
   // start the game clock after everything else is ready.
   last_move = millis();
   last_drop = last_move;
-
-  score = 0;
 }
 
 
@@ -505,16 +517,16 @@ void loop() {
   // when it isn't doing those two things, it's redrawing the grid.
   draw_grid();
   // 패턴 설정
-  //setting_pattern_random();
+  setting_pattern_random();
 
   if (s.available()) {
     char data = s.read();
     sonic = int(data - '0');
-    Serial.println(data);
+    //Serial.println(data);
     if (pattern_num == 1 && sonic == 0) {
       sonic = 2;
     }
-    if (pattern_num == 1 && sonic == 2) {
+    else if (pattern_num == 1 && sonic == 2) {
       sonic = 0;
     }
   }

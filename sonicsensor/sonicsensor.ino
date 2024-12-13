@@ -49,5 +49,10 @@ void loop() {
     s.write('2');
     Serial.println("2");
   }
+
+  if (rotateDistance > 10 && downDistance > 10) {
+    s.write('1');
+    Serial.println("1");
+  }
   delay(100);
 }
