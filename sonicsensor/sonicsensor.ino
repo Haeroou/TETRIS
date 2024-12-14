@@ -11,16 +11,16 @@ int RightMotor_E_pin = 4;                                        // 오른쪽 �
 int LeftMotor_E_pin = 5;                                         // 왼쪽 모터의 Enable & PWM
 int RightMotor_1_pin = 6;                                        // 오른쪽 모터 제어선 IN1
 int RightMotor_2_pin = 7;                                        // 오른쪽 모터 제어선 IN2
-int LeftMotor_3_pin = 8;                                        // 왼쪽 모터 제어선 IN3
-int LeftMotor_4_pin = 9;                                        // 왼쪽 모터 제어선 IN4
+int LeftMotor_3_pin = 8;                                         // 왼쪽 모터 제어선 IN3
+int LeftMotor_4_pin = 9;                                         // 왼쪽 모터 제어선 IN4
 
-int L_MAX_MotorSpeed = 80;                                          // 왼쪽 모터 속도
-int R_MAX_MotorSpeed = 80;                                          // 오른쪽 모터 속도
+int L_MAX_MotorSpeed = 130;                                          // 왼쪽 모터 속도
+int R_MAX_MotorSpeed = 130;                                          // 오른쪽 모터 속도
 
 int L_MotorSpeed = 0;                                          // 왼쪽 모터 속도
 int R_MotorSpeed = 0;                                          // 오른쪽 모터 속도
 
-int motor_pattern = 5;
+int motor_pattern = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -74,23 +74,23 @@ void loop() {
 
   if (rotateDistance > 10 && downDistance > 10) {
     s.write('1');
-    Serial.println("1");
+    //Serial.println("1");
   }
 
   if (s.available()) {
     char motor_data = s.read();
     motor_pattern = int(motor_data - '0');
-    if (motor_pattern == 3 && rotateDistance <= 10) {
-      L_MotorSpeed = L_MAX_MotorSpeed;
-      R_MotorSpeed = R_MAX_MotorSpeed;
-      motor_role(HIGH, HIGH);
-    }
-    else if (motor_pattern == 4 && downDistance <= 10) {
+    if (motor_pattern == 1 && rotateDistance <= 10) {
       L_MotorSpeed = L_MAX_MotorSpeed;
       R_MotorSpeed = R_MAX_MotorSpeed;
       motor_role(LOW, LOW);
     }
-    else if (motor_pattern == 5 && rotateDistance > 10 && downDistance > 10) {
+    else if (motor_pattern == 1 && downDistance <= 10) {
+      L_MotorSpeed = L_MAX_MotorSpeed;
+      R_MotorSpeed = R_MAX_MotorSpeed;
+      motor_role(HIGH, HIGH);
+    }
+    else if (rotateDistance > 10 && downDistance > 10) {
       analogWrite(RightMotor_E_pin, 0);
       analogWrite(LeftMotor_E_pin, 0);
     }
@@ -99,8 +99,8 @@ void loop() {
 }
 
 void motor_role(int R_motor, int L_motor) {
-  digitalWrite(RightMotor_1_pin, R_motor);
-  digitalWrite(RightMotor_2_pin, !R_motor);
+  digitalWrite(RightMotor_1_pin, !R_motor);
+  digitalWrite(RightMotor_2_pin, R_motor);
   digitalWrite(LeftMotor_3_pin, L_motor);
   digitalWrite(LeftMotor_4_pin, !L_motor);
 

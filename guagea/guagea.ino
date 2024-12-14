@@ -153,12 +153,23 @@ void draw_grid() {
   }
   if (pattern_num == 0) {
     tpattern_num = 0;
-  } else {
-    tpattern_num = (int)pow(2, (pattern_num - 1));
+  } 
+  else if (pattern_num == 1) {
+    tpattern_num = 1;
   }
+  else if (pattern_num == 2) {
+    tpattern_num = 2;
+  }
+  else if (pattern_num == 3) {
+    tpattern_num = 4;
+  }
+  else if (pattern_num == 4) {
+    tpattern_num = 8;
+  }
+  Serial.println(tpattern_num);
   for (int i = 0; i < 8; i++) {
     digitalWrite(latchpin, LOW);
-    shiftOut(datapin, clockpin, LSBFIRST, ~row7[i] + tpattern_num);
+    shiftOut(datapin, clockpin, LSBFIRST, ~(row7[i] + tpattern_num));
     shiftOut(datapin, clockpin, LSBFIRST, col7[s_score[i % 4]]);
     shiftOut(datapin, clockpin, LSBFIRST, row[i]);
     shiftOut(datapin, clockpin, LSBFIRST, ~col1[i]);
@@ -534,16 +545,12 @@ void loop() {
     } else if (pattern_num == 1 && sonic == 2) {
       sonic = 0;
     }
+  }
 
-    if (pattern_num == 4 && sonic == 0) {
-      s.write('3');
-      //Serial.println("3");
-    } else if (pattern_num == 4 && sonic == 2) {
-      s.write('4');
-      //Serial.println("4");
-    } else {
-      s.write('5');
-      //Serial.println("5");
-    }
+  if (pattern_num == 4) {
+      s.write('1');
+  }
+  else {
+      s.write('0');
   }
 }

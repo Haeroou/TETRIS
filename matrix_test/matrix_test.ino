@@ -19,9 +19,9 @@ int row7[8] = {
   B01000010,
   B10000001
 };
-int latchpin = 6;
-int clockpin = 5;
-int datapin = 4;
+int latchpin = 5;
+int clockpin = 4;
+int datapin = 6;
 void setup() {
   // put your setup code here, to run once:
   pinMode(latchpin, OUTPUT);
@@ -35,8 +35,10 @@ void loop() {
   for (int i = 0; i < 8; i++) {
     digitalWrite(latchpin, LOW);
     shiftOut(datapin, clockpin, LSBFIRST, row[i]);
-    shiftOut(datapin, clockpin, LSBFIRST, ~row7[i]);
-    shiftOut(datapin, clockpin, LSBFIRST, ~row7[i]);
+    shiftOut(datapin, clockpin, LSBFIRST, 0xff);
+    shiftOut(datapin, clockpin, LSBFIRST, row[i]);
+    shiftOut(datapin, clockpin, LSBFIRST, 0x00);
+    shiftOut(datapin, clockpin, LSBFIRST, 0x00);
     digitalWrite(latchpin, HIGH);
-    delay(100);
+    delay(1);
   }}
