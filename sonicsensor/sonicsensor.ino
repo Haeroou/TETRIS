@@ -20,6 +20,8 @@ int R_MAX_MotorSpeed = 80;                                          // 오른쪽
 int L_MotorSpeed = 0;                                          // 왼쪽 모터 속도
 int R_MotorSpeed = 0;                                          // 오른쪽 모터 속도
 
+int motor_pattern = 5;
+
 void setup() {
   Serial.begin(9600);
   s.begin(9600);
