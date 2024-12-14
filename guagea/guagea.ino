@@ -13,6 +13,7 @@
 #define JOYSTICK_PIN (1)
 
 #include <SoftwareSerial.h>
+#include <math.h>
 SoftwareSerial s(2, 3);  // 2:RX 3:TX
 
 int latchpin = 5;
@@ -112,9 +113,10 @@ long drop_delay = 500;  // 500ms = 2 times a second
 char grid[8 * 16];
 
 // 패턴 관련 변수
-int pattern_num = 0;                 // 패턴 종류 값
+int pattern_num = 0;  // 패턴 종류 값
+int tpattern_num;
 unsigned long pattern_lastTime = 0;  // 마지막으로 업데이트 된 시간
-const int pattern_interval = 8000;  // 패턴 변환 주기(ms)
+const int pattern_interval = 8000;   // 패턴 변환 주기(ms)
 
 //--------------------------------------------------------------------------------
 // METHODS
@@ -139,8 +141,8 @@ void draw_grid() {
     col2[i] = pcol;
     pcol = 0;
   }
-  
-   b_score = score;
+
+  b_score = score;
   for (int i = 0; i < 4; i++) {
     if (b_score == 0) {
       s_score[i] = 10;
@@ -149,16 +151,21 @@ void draw_grid() {
       b_score /= 10;
     }
   }
+  if (pattern_num == 0) {
+    tpattern_num = 0;
+  } else {
+    tpattern_num = (int)pow(2, (pattern_num - 1));
+  }
   for (int i = 0; i < 8; i++) {
     digitalWrite(latchpin, LOW);
-    shiftOut(datapin, clockpin, LSBFIRST, ~row7[i]);
+    shiftOut(datapin, clockpin, LSBFIRST, ~row7[i] + tpattern_num);
     shiftOut(datapin, clockpin, LSBFIRST, col7[s_score[i % 4]]);
     shiftOut(datapin, clockpin, LSBFIRST, row[i]);
     shiftOut(datapin, clockpin, LSBFIRST, ~col1[i]);
     shiftOut(datapin, clockpin, LSBFIRST, ~col2[i]);
     digitalWrite(latchpin, HIGH);
     delay(1);
-    if (pattern_num != 3) delayMicroseconds(1);     // 기본
+    if (pattern_num != 3) delayMicroseconds(1);      // 기본
     if (pattern_num == 3) delayMicroseconds(10000);  // 프레임 감소
   }
 }
@@ -454,17 +461,13 @@ void setting_pattern_random() {
     Serial.print("현재 패턴: ");
     if (pattern_num == 0) {
       Serial.print("기본");
-    }
-    else if (pattern_num == 1) {
+    } else if (pattern_num == 1) {
       Serial.print("초음파 반전");
-    }
-    else if (pattern_num == 2) {
+    } else if (pattern_num == 2) {
       Serial.print("터치센서 반전");
-    }
-    else if (pattern_num == 3) {
+    } else if (pattern_num == 3) {
       Serial.print("프레임 감소");
-    }
-    else if (pattern_num == 4) {
+    } else if (pattern_num == 4) {
       Serial.print("모터 작동");
     }
     Serial.println("");
@@ -528,20 +531,17 @@ void loop() {
     //Serial.println(data);
     if (pattern_num == 1 && sonic == 0) {
       sonic = 2;
-    }
-    else if (pattern_num == 1 && sonic == 2) {
+    } else if (pattern_num == 1 && sonic == 2) {
       sonic = 0;
     }
 
     if (pattern_num == 4 && sonic == 0) {
       s.write('3');
       //Serial.println("3");
-    }
-    else if (pattern_num == 4 && sonic == 2) {
+    } else if (pattern_num == 4 && sonic == 2) {
       s.write('4');
       //Serial.println("4");
-    }
-    else {
+    } else {
       s.write('5');
       //Serial.println("5");
     }
