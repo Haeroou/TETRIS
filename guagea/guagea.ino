@@ -441,7 +441,7 @@ int game_is_over() {
 }
 //--------------------------------------------------------------------------------
 // 패턴 랜덤 변환 함수
-// 0 == 기본  1 == 초음파 반전  2 == 터치센서 반전  3 == 프레임 감소
+// 0 : 기본  1 : 초음파 반전  2 : 터치센서 반전  3 : 프레임 감소  4 : 모터 작동
 //--------------------------------------------------------------------------------
 void setting_pattern_random() {
   unsigned long pattern_currentTime = millis();
@@ -449,7 +449,7 @@ void setting_pattern_random() {
   if (pattern_currentTime - pattern_lastTime >= pattern_interval) {
     pattern_lastTime = pattern_currentTime;
 
-    pattern_num = random(0, 4);  // 패턴 갯수 설정
+    pattern_num = random(0, 5);  // 패턴 갯수 설정
 
     Serial.print("현재 패턴: ");
     if (pattern_num == 0) {
@@ -463,6 +463,9 @@ void setting_pattern_random() {
     }
     else if (pattern_num == 3) {
       Serial.print("프레임 감소");
+    }
+    else if (pattern_num == 4) {
+      Serial.print("모터 작동");
     }
     Serial.println("");
   }
@@ -528,6 +531,19 @@ void loop() {
     }
     else if (pattern_num == 1 && sonic == 2) {
       sonic = 0;
+    }
+
+    if (pattern_num == 4 && sonic == 0) {
+      s.write('3');
+      //Serial.println("3");
+    }
+    else if (pattern_num == 4 && sonic == 2) {
+      s.write('4');
+      //Serial.println("4");
+    }
+    else {
+      s.write('5');
+      //Serial.println("5");
     }
   }
 }
