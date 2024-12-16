@@ -118,6 +118,9 @@ int tpattern_num;
 unsigned long pattern_lastTime = 0;  // 마지막으로 업데이트 된 시간
 const int pattern_interval = 8000;   // 패턴 변환 주기(ms)
 
+unsigned long serial_lastTime = 0; // 마지막으로 업데이트 된 시리얼 통신 시간
+const long serial_interval = 100; // 시리얼 통신 주기(ms)
+
 //--------------------------------------------------------------------------------
 // METHODS
 //--------------------------------------------------------------------------------
@@ -166,7 +169,7 @@ void draw_grid() {
   else if (pattern_num == 4) {
     tpattern_num = 8;
   }
-  Serial.println(tpattern_num);
+  //Serial.println(tpattern_num);
   for (int i = 0; i < 8; i++) {
     digitalWrite(latchpin, LOW);
     shiftOut(datapin, clockpin, LSBFIRST, ~(row7[i] + tpattern_num));
@@ -482,6 +485,15 @@ void setting_pattern_random() {
       Serial.print("모터 작동");
     }
     Serial.println("");
+
+    if (pattern_num == 4) {
+      s.write('1');
+      Serial.println("1");
+    }
+    else {
+      s.write('0');
+      Serial.println("0");
+    }
   }
 }
 
@@ -519,6 +531,8 @@ void setup() {
 
 // called over and over after setup()
 void loop() {
+  unsigned long currentMillis = millis();
+
   // the game plays at one speed,
   if (millis() - last_move > move_delay) {
     last_move = millis();
@@ -535,7 +549,6 @@ void loop() {
   draw_grid();
   // 패턴 설정
   setting_pattern_random();
-
   if (s.available()) {
     char data = s.read();
     sonic = int(data - '0');
@@ -547,10 +560,15 @@ void loop() {
     }
   }
 
-  if (pattern_num == 4) {
+  if (currentMillis - serial_lastTime >= serial_interval) {
+    serial_lastTime = currentMillis;
+    if (pattern_num == 4) {
       s.write('1');
-  }
-  else {
+      Serial.println("1");
+    }
+    else {
       s.write('0');
+      Serial.println("0");
+    }
   }
 }

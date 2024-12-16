@@ -14,13 +14,17 @@ int RightMotor_2_pin = 7;                                        // 오른쪽 �
 int LeftMotor_3_pin = 8;                                         // 왼쪽 모터 제어선 IN3
 int LeftMotor_4_pin = 9;                                         // 왼쪽 모터 제어선 IN4
 
-int L_MAX_MotorSpeed = 130;                                          // 왼쪽 모터 속도
-int R_MAX_MotorSpeed = 130;                                          // 오른쪽 모터 속도
+int L_MAX_MotorSpeed = 180;                                          // 왼쪽 모터 속도
+int R_MAX_MotorSpeed = 180;                                          // 오른쪽 모터 속도
 
 int L_MotorSpeed = 0;                                          // 왼쪽 모터 속도
 int R_MotorSpeed = 0;                                          // 오른쪽 모터 속도
 
+char motor_data;
 int motor_pattern = 0;
+
+unsigned long serial_lastTime = 0; // 마지막으로 업데이트 된 시리얼 통신 시간
+const long serial_interval = 100; // 시리얼 통신 주기(ms)
 
 void setup() {
   Serial.begin(9600);
@@ -39,6 +43,8 @@ void setup() {
 }
 
 void loop() {
+  unsigned long currentMillis = millis();
+
   long rotateDuration, rotateDistance, rotateTempDistance;
   long downDuration, downDistance, downTempDistance;
 
@@ -61,24 +67,26 @@ void loop() {
   if (downTempDistance <= 35) {
     downDistance = downTempDistance;
   }
+  if (currentMillis - serial_lastTime >= serial_interval) {
+    serial_lastTime = currentMillis;
+    if (rotateDistance <= 10) {
+      s.write('0');
+      Serial.println("0");
+    }
 
-  if (rotateDistance <= 10) {
-    s.write('0');
-    Serial.println("0");
-  }
+    if (downDistance <= 10) {
+      s.write('2');
+      Serial.println("2");
+    }
 
-  if (downDistance <= 10) {
-    s.write('2');
-    Serial.println("2");
-  }
-
-  if (rotateDistance > 10 && downDistance > 10) {
-    s.write('1');
-    //Serial.println("1");
+    if (rotateDistance > 10 && downDistance > 10) {
+      s.write('1');
+      Serial.println("1");
+    }
   }
 
   if (s.available()) {
-    char motor_data = s.read();
+    motor_data = s.read();
     motor_pattern = int(motor_data - '0');
     if (motor_pattern == 1 && rotateDistance <= 10) {
       L_MotorSpeed = L_MAX_MotorSpeed;
@@ -95,6 +103,11 @@ void loop() {
       analogWrite(LeftMotor_E_pin, 0);
     }
   }
+
+  Serial.print("motor_pattern : ");
+  Serial.println(motor_pattern);
+  Serial.print("motor_data : ");
+  Serial.println(motor_data);
   delay(100);
 }
 
